@@ -1,0 +1,215 @@
+/* general styles */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+
+html, body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 16px;
+    --accent-color: #037dd6;
+    --border-radius: 0.5rem;
+}
+
+.container {
+    width: 60rem;
+    margin: 0 auto;
+    padding: 5rem 25rem 5rem 0;
+    box-sizing: border-box;
+}
+
+button {
+    height: 2.5rem;
+    width: fit-content;
+    box-shadow: none;
+    background: var(--accent-color);
+    border: 2px solid var(--accent-color);
+    border-radius: var(--border-radius);
+    color: white;
+    font-weight: 500;
+    font-size: 0.75rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all ease-in-out .2s;
+}
+
+button:hover {
+    background: white;
+    color: var(--accent-color);
+}
+
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+input, select {
+    height: 2.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #ccc;
+    margin-right: 1rem;
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+input:focus-visible {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.warning {
+    display: none;
+    margin-bottom: 3rem;
+}
+
+section {
+    margin: 0 0 3rem;
+}
+
+section:last-of-type {
+    margin: 0;
+}
+
+h2 {
+    margin: 0 0 1.5rem;
+}
+
+/* account data section */
+
+.accountData h2 {
+    margin: 0 0 0.25rem;
+}
+
+.networkLabel {
+    margin: 0 0 1.5rem;
+}
+
+.accountDataLine {
+    margin: 0 0 0.5rem;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.dataLinePlaceholder {
+    font-weight: 500;
+    width: 12rem;
+}
+
+.dataLinePlaceholder + span {
+    width: 10rem;
+}
+
+.getAccountDataLink {
+    color: var(--accent-color);
+    cursor: pointer;
+    user-select: none;
+}
+
+.addCoinsButton {
+    margin-top: 1rem;
+}
+
+/* roles section */
+
+.rolesData h2 {
+    margin: 0 0 1rem;
+}
+
+.rolesDataBlock {
+    margin: 0 0 2rem;
+}
+
+.rolesData p {
+    margin: 0 0 2rem;
+}
+
+.rolesDataLine {
+    margin: 0 0 1rem;
+}
+
+.roleGrantingAddress {
+    width: 25rem;
+}
+
+/* oracle section */
+
+.oracleRewardResult {
+    padding: 1rem 0;
+}
+
+/* wbtc section*/
+
+.wbtcBankAddress {
+    width: 23rem;
+}
+
+/* transaction list section*/
+
+.transactionListContainer {
+    width: 20rem;
+    height: calc(100vh - 10rem);
+    position: fixed;
+    top: 5rem;
+    right: calc((100vw - 60rem) / 2);
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+}
+
+.transactionListContainer h3 {
+    width: 100%;
+    text-align: center;
+    padding: 1rem;
+    margin: 0;
+    box-sizing: border-box;
+    border-bottom: 1px solid #ccc;
+}
+.transactionItem {
+    margin: 0 0.5rem;
+    padding: 1rem 0.5rem 1rem;
+    border-bottom: 1px solid #ccc;
+    position: relative;
+}
+
+.transactionItem:last-of-type {
+    border-bottom: none;
+}
+
+.transactionItem h4 {
+    margin: 0 0 1rem;
+    font-weight: 600;
+}
+
+.transactionItemDetail {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.transactionItemDetail span {
+    width: 45%;
+    font-weight: 500;
+}
+
+.transactionStatus {
+    position: absolute;
+    top: 1rem;
+    right: 0.5rem;
+}
+
+.transactionList {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: calc(100% - 3.5rem);
+}
+
+.clearTransactionList {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    color: var(--accent-color);
+    cursor: pointer;
+}
+
+.buttonLine {
+    margin: 0 0 1rem;
+}
+

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>H24 demo</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" type="text/css" href="./style.css" />
+    <link rel="icon" href="https://hashing24.com/favicon.ico" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="warning" id="warning">
+        <h2>Metamask needed to run this demo</h2>
+        <a target="_blank" href="https://metamask.io/download.html">Install Metamask</a>
+      </div>
+
+      <section class="accountData">
+        <h2>Account data</h2>
+        <div class="networkLabel" id="networkLabel"></div>
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Your address: </span>
+          <span id="accountAddress"></span>
+          <span id="getAddressLink" class="getAccountDataLink">get address from metamask</span>
+        </div>
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Balance: </span>
+          <span id="accountBalance"></span>
+          <span id="getBalanceLink" class="getAccountDataLink">get current balance</span>
+        </div>
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Stake amount: </span>
+          <span id="stakeAmount"></span>
+          <span id="getStakeLink" class="getAccountDataLink">get current stake amount</span>
+        </div>
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Can claim: </span>
+          <span id="canClaimValue"></span>
+          <span id="checkCanClaim" class="getAccountDataLink">check if you can claim</span>
+        </div>
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Can unstake: </span>
+          <span id="canUnstakeValue"></span>
+          <span id="checkCanUnstake" class="getAccountDataLink">check if you can unstake</span>
+        </div>
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Estimated user reward: </span>
+          <span id="estimatedUserReward"></span>
+          <span id="getEstimatedUserReward" class="getAccountDataLink">get estimated user reward</span>
+        </div>
+        <button class="addCoinsButton" id="addCoinsButton"> Add H24 to metamask</button>
+      </section>
+
+      <section class="rolesData">
+        <h2>Roles</h2>
+
+        <form id="roleManagmentForm">
+          <div class="rolesDataLine">
+            <input
+              autocomplete="off"
+              type="text"
+              class="roleGrantingAddress"
+              id="roleGrantingAddress"
+              placeholder="address"
+              required
+            />
+
+            <select id="chosenRole">
+              <option>admin</option>
+              <option>minter</option>
+              <option>oracle</option>
+            </select>
+          </div>
+
+          <button id="grantRole" type="button">grant</button>
+          <button id="revokeRole" type="button">revoke</button>
+          <button id="checkRoleStatus" type="button">check</button>
+        </form>
+
+      </section>
+
+      <section class="mintSection">
+        <h2>Mint some coins for me</h2>
+        <p>Minter role is needed</p>
+
+        <div class="buttonLine">
+          <form id="mintForm">
+            <input autocomplete="off" type="text" placeholder="amount" id="mintAmount" required/>
+            <button>Mint</button>
+          </form>
+        </div>
+
+      </section>
+
+      <section class="userSection">
+        <h2>Methods for user role</h2>
+
+        <div class="buttonLine">
+          <form id="stakeForm">
+            <input autocomplete="off" type="text" placeholder="amount" id="stakeAmountInput" required/>
+
+            <button>
+              Stake
+            </button>
+          </form>
+        </div>
+
+        <div class="buttonLine">
+          <form id="unstakeForm">
+            <input autocomplete="off" type="text" placeholder="amount" id="unstakeAmountInput" required/>
+
+            <button>
+              Unstake
+            </button>
+          </form>
+        </div>
+
+        <div class="buttonLine">
+          <button id="unstakeAll">
+            Unstake all
+          </button>
+
+          <button id="claim">
+            Claim
+          </button>
+        </div>
+
+
+      </section>
+      <section class="oracleSection">
+        <h2>Methods for oracle</h2>
+
+        <h3>Get reward for selected day:</h3>
+        <form id="oracleGetReward">
+          <input autocomplete="off" type="date" id="getRewardDateInput" required/>
+          <button>get reward</button>
+        </form>
+        <div class="oracleRewardResult">
+          <span class="dataLinePlaceholder">Result:</span>
+          <span id="oracleRewardResult"></span>
+        </div>
+
+        <h3>Set reward for selected day:</h3>
+        <form id="oracleSetReward">
+          <input autocomplete="off" type="date" id="setRewardDateInput" required/>
+          <input autocomplete="off" type="text" id="rewardAmount" placeholder="reward" required />
+          <button>set reward</button>
+        </form>
+      </section>
+
+      <section class="wbtcSection">
+        <h2>WBTC</h2>
+
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Bank address: </span>
+          <span id="wbtcBankAddress"></span>
+          <span id="getWbtcBankAddress" class="getAccountDataLink">get current WBTC address</span>
+        </div>
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Balance: </span>
+          <span id="wbtcBalance"></span>
+          <span id="getWbtcBalance" class="getAccountDataLink">get current balance</span>
+        </div>
+        <div class="accountDataLine">
+          <span class="dataLinePlaceholder">Allowance: </span>
+          <span id="wbtcAllowance"></span>
+          <span id="getWbtcAllowance" class="getAccountDataLink">check wbtc allowance</span>
+        </div>
+
+        <h3>Set WBTC bank address</h3>
+        <p>Admin role is needed</p>
+        <form id="setWbtcBank">
+          <input
+            autocomplete="off"
+            type="text"
+            class="wbtcBankAddress"
+            id="wbtcBankAddressInput"
+            placeholder="address"
+            required
+          />
+
+          <button>set wbtc bank</button>
+        </form>
+
+        <h3>WBTC increase approval</h3>
+        <form id="wbtcAllowanceForm">
+          <input
+            id="wbtcAllowanceValue"
+            placeholder="value"
+            autocomplete="off"
+            type="text"
+            class="wbtcBankAddress"
+            required
+          />
+          <button id="increaseAllowance">increase allowance</button>
+
+        </form>
+
+      </section>
+
+    </div>
+
+    <div class="transactionListContainer">
+      <h3>Transaction list</h3>
+      <div id="transactionList" class="transactionList"></div>
+      <div id="clearTransactionList" class="clearTransactionList">
+        clear list
+      </div>
+    </div>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    <script type="module" src="utils.js"></script>
+    <script type="module" src="./methods.js"></script>
+    <script type="module">
+        import methods from './methods.js'
+        import utils from './utils.js'
+
+        document.getElementById('getAddressLink')
+                .addEventListener('click', methods.connectMetamask)
+
+        document.getElementById('getBalanceLink')
+                .addEventListener('click', methods.getBalance)
+
+        document.getElementById('getStakeLink')
+                .addEventListener('click', methods.getStake)
+
+        document.getElementById('checkCanClaim')
+                .addEventListener('click', methods.canClaim)
+
+        document.getElementById('checkCanUnstake')
+                .addEventListener('click', methods.canUnstake)
+
+        document.getElementById('addCoinsButton')
+                .addEventListener('click', methods.addCoinToMetamask)
+
+        document.getElementById('getEstimatedUserReward')
+                .addEventListener('click', methods.getUserReward)
+
+        document.getElementById('grantRole')
+                .addEventListener('click', () => {
+                  utils.fireRoleFormEvent('grant');
+                })
+
+        document.getElementById('revokeRole')
+                .addEventListener('click', () => {
+                  utils.fireRoleFormEvent('revoke');
+                })
+
+        document.getElementById('checkRoleStatus')
+                .addEventListener('click', () => {
+                  utils.fireRoleFormEvent('check');
+                })
+
+        const roleManagmentForm = document.getElementById('roleManagmentForm');
+
+        roleManagmentForm.addEventListener('grant', methods.grantRole)
+
+        roleManagmentForm.addEventListener('revoke', methods.revokeRole)
+
+        roleManagmentForm.addEventListener('check', methods.checkRole)
+
+        document.getElementById('mintForm')
+                .addEventListener('submit', methods.mintFormHandler)
+
+        document.getElementById('stakeForm')
+                .addEventListener('submit', methods.stakeFormHandler)
+
+        document.getElementById('unstakeForm')
+                .addEventListener('submit', methods.unstakeFormHandler)
+
+        document.getElementById('unstakeAll')
+                .addEventListener('click', methods.unstakeAll)
+
+        document.getElementById('claim')
+                .addEventListener('click', methods.claim)
+
+        document.getElementById('oracleGetReward')
+                .addEventListener('submit', methods.oracleGetReward)
+
+        document.getElementById('oracleSetReward')
+                .addEventListener('submit', methods.oracleSetReward)
+
+        document.getElementById('getWbtcBankAddress')
+                .addEventListener('click', methods.getWBTCAddress)
+
+        document.getElementById('setWbtcBank')
+                .addEventListener('submit', methods.setWBTCBankHandler)
+
+        document.getElementById('getWbtcBalance')
+                .addEventListener('click', methods.getWBTCBalance)
+
+        document.getElementById('getWbtcAllowance')
+                .addEventListener('click', methods.getWBTCAllowance)
+
+        document.getElementById('wbtcAllowanceForm')
+                .addEventListener('submit', methods.wbtcIncreaseApproval)
+
+        document.getElementById('clearTransactionList')
+                .addEventListener('click', utils.clearList)
+
+    </script>
+  </body>
+</html>

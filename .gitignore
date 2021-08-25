@@ -1,6 +1,12 @@
 .env
 node_modules
 
+coverage
+coverage.json
+
 #Hardhat files
 cache
 artifacts
+deployments
+
+.idea

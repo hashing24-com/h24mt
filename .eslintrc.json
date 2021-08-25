@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["/docs/*"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
