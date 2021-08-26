@@ -59,12 +59,10 @@ contract H24 is ERC20, AccessControl {
 
 
     function stake(uint232 amount) public {
-        if (miners[msg.sender].stake != 0 && today() > miners[msg.sender].date + 1) {
+        if (miners[msg.sender].stake != 0 && today() > miners[msg.sender].date + 1)
             claim();
-        } else {
-            miners[msg.sender].date = today();
-        }
 
+        miners[msg.sender].date = today();
         miners[msg.sender].stake += amount;
         _transfer(msg.sender, address(this), amount);
         emit Stake(msg.sender, int(uint(amount)));
@@ -72,10 +70,10 @@ contract H24 is ERC20, AccessControl {
 
     function unstake(uint232 amount) public {
         require(miners[msg.sender].stake >= amount, ERR_AmountGreaterStake);
-        if (today() > miners[msg.sender].date + 1) {
+        if (today() > miners[msg.sender].date + 1)
             claim();
-        }
 
+        miners[msg.sender].date = today();
         miners[msg.sender].stake -= amount;
         _transfer(address(this), msg.sender, amount);
         emit Stake(msg.sender, -int(uint(amount)));
@@ -83,10 +81,10 @@ contract H24 is ERC20, AccessControl {
 
     function unstakeAll() public {
         require(miners[msg.sender].stake > 0, ERR_NoStake);
-        if (today() > miners[msg.sender].date + 1) {
+        if (today() > miners[msg.sender].date + 1)
             claim();
-        }
 
+        miners[msg.sender].date = today();
         _transfer(address(this), msg.sender, miners[msg.sender].stake);
         emit Stake(msg.sender, -int(uint(miners[msg.sender].stake)));
         delete miners[msg.sender];
@@ -95,9 +93,9 @@ contract H24 is ERC20, AccessControl {
     function canUnstake(address addr) public view returns (bool) {
         require(miners[addr].stake > 0, ERR_NoStake);
 
-        if (miners[addr].date + 1 < today()) {
+        if (miners[addr].date + 1 < today())
             return canClaim(addr);
-        }
+
         return true;
     }
 
@@ -108,7 +106,8 @@ contract H24 is ERC20, AccessControl {
 
     function claim() public {
         uint reward = getUserReward(msg.sender);
-        lastClaimed = miners[msg.sender].date = today();
+        lastClaimed = today();
+        miners[msg.sender].date = today() - 1;
 
         try WBTCI(WbtcContract).transferFrom(WbtcAddress, msg.sender, reward) {}
         catch { revert(ERR_NoWBTC); }

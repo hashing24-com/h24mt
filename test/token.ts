@@ -245,16 +245,32 @@ describe("Token", () => {
       await wbtcContract.increaseApproval(contract.address, 1000);
 
       expect(await contract.getUserReward(user)).to.equal(50);
-      await contract.canClaim(user);
-      await expect(await contract.connect(userS).claim())
+      expect(await contract.canClaim(user)).to.be.true;
+      await expect(contract.connect(userS).claim())
           .to.emit(contract, 'Claim').withArgs(user, 50);
       expect(await wbtcContract.balanceOf(user)).to.equal(50);
+    });
+
+    it("can claim on next day", async () => {
+      await contract.connect(userS).stake(5);
+      for (let i = 0; i < 3; i++) await contract.setReward(today + i, 10);
+      await nextDay(2);
+      await wbtcContract.mint(owner, 1000);
+      await wbtcContract.increaseApproval(contract.address, 1000);
+
+      await contract.connect(userS).claim();
+      await expect(contract.connect(userS).claim()).to.be.revertedWith(errors.CantClaimYet);
+
+      await nextDay();
+      await contract.connect(userS).claim();
+
+      expect(await wbtcContract.balanceOf(user)).to.equal(100);
     });
 
     it("our error if wbtc error", async () => {
       await contract.connect(userS).stake(5);
       await contract.setReward(today, 10);
-      await contract.setReward(today+1, 10);
+      await contract.setReward(today + 1, 10);
       await nextDay(2);
 
       await expect(contract.connect(userS).claim()).to.be.revertedWith(errors.NoWBTC);
