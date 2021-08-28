@@ -47,7 +47,6 @@ contract H24 is ERC20, AccessControl {
 
 
     constructor(address _wbtcContract, address _wbtcAddress, address minter, address oracle) ERC20("Hashing24", "H24") {
-        _setupDecimals(0);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINTER_ROLE, minter);
         _setupRole(ORACLE_ROLE, oracle);
@@ -56,6 +55,10 @@ contract H24 is ERC20, AccessControl {
         WbtcAddress = _wbtcAddress;
 
         rewards[today()-1] = 1;  // set first reward != 0 so now we can use setReward()
+    }
+
+    function decimals() public view override returns (uint8) {
+        return 0;
     }
 
 
