@@ -47,6 +47,7 @@ contract H24 is ERC20, AccessControl {
 
 
     constructor(address _wbtcContract, address _wbtcAddress, address minter, address oracle) ERC20("Hashing24", "H24") {
+        _setupDecimals(0);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINTER_ROLE, minter);
         _setupRole(ORACLE_ROLE, oracle);
