@@ -84,7 +84,6 @@ contract H24 is ERC20, AccessControl {
         if (today() > miners[msg.sender].date + 1)
             claim();
 
-        miners[msg.sender].date = today();
         _transfer(address(this), msg.sender, miners[msg.sender].stake);
         emit Stake(msg.sender, -int(uint(miners[msg.sender].stake)));
         delete miners[msg.sender];
