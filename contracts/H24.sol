@@ -18,25 +18,25 @@ contract H24 is ERC20, AccessControl {
     address public WbtcContract;
     address public WbtcAddress;
 
-    uint24 public lastClaimed; // the last day for which the payment was made to any client
+    uint64 public lastClaimed; // the last day for which the payment was made to any client
 
-    // we use 24 and 232 bit to "pack" variables into one 256
+    // we use 64 and 192 bit to "pack" variables into one 256
     struct Miner {
-        uint24 date;
-        uint232 stake;
+        uint64 date;  // stake minute
+        uint192 stake;
     }
 
     mapping(address => Miner) public miners;
 
     // reward in WBTC for a steak of one H24 token on this day
-    mapping(uint24 => uint) public rewards; // date => amount
+    mapping(uint64 => uint) public rewards; // date => amount256
 
 
     string constant ERR_NoWBTC = "We run out of WBTC";
     string constant ERR_NoStake = "You need to stake first";
     string constant ERR_CantClaimYet = "You can't claim today";
     string constant ERR_NoRewardSet = "No reward set for previous day";
-    string constant ERR_RewardOutBounds = "Reward must be >0 and <1e6";
+    string constant ERR_RewardOutBounds = "Reward must be >0 and <1e25";
     string constant ERR_RewardClaimed = "Already claim for this day";
     string constant ERR_AmountGreaterStake = "Amount > stake";
     string constant ERR_NextRewardSet = "Only last reward can be changed";
@@ -58,22 +58,22 @@ contract H24 is ERC20, AccessControl {
     }
 
 
-    function stake(uint232 amount) public {
-        if (miners[msg.sender].stake != 0 && today() > miners[msg.sender].date + 1)
+    function stake(uint192 amount) public {
+        if (miners[msg.sender].stake != 0 && _canClaim(msg.sender))
             claim();
 
-        miners[msg.sender].date = today();
+        miners[msg.sender].date = uint64(block.timestamp);
         miners[msg.sender].stake += amount;
         _transfer(msg.sender, address(this), amount);
         emit Stake(msg.sender, int(uint(amount)));
     }
 
-    function unstake(uint232 amount) public {
+    function unstake(uint192 amount) public {
         require(miners[msg.sender].stake >= amount, ERR_AmountGreaterStake);
-        if (today() > miners[msg.sender].date + 1)
+        if (_canClaim(msg.sender))
             claim();
 
-        miners[msg.sender].date = today();
+        miners[msg.sender].date = uint64(block.timestamp);
         miners[msg.sender].stake -= amount;
         _transfer(address(this), msg.sender, amount);
         emit Stake(msg.sender, -int(uint(amount)));
@@ -81,7 +81,7 @@ contract H24 is ERC20, AccessControl {
 
     function unstakeAll() public {
         require(miners[msg.sender].stake > 0, ERR_NoStake);
-        if (today() > miners[msg.sender].date + 1)
+        if (_canClaim(msg.sender))
             claim();
 
         _transfer(address(this), msg.sender, miners[msg.sender].stake);
@@ -91,10 +91,7 @@ contract H24 is ERC20, AccessControl {
 
     function canUnstake(address addr) public view returns (bool) {
         require(miners[addr].stake > 0, ERR_NoStake);
-
-        if (miners[addr].date + 1 < today())
-            return canClaim(addr);
-
+        if (_canClaim(addr)) return canClaim(addr);
         return true;
     }
 
@@ -104,9 +101,13 @@ contract H24 is ERC20, AccessControl {
 
 
     function claim() public {
+        _claim();
+        miners[msg.sender].date = uint64(block.timestamp / 86400 * 86400);  // start of a day
+    }
+
+    function _claim() internal {
         uint reward = getUserReward(msg.sender);
         lastClaimed = today();
-        miners[msg.sender].date = today() - 1;
 
         try WBTCI(WbtcContract).transferFrom(WbtcAddress, msg.sender, reward) {}
         catch { revert(ERR_NoWBTC); }
@@ -116,36 +117,44 @@ contract H24 is ERC20, AccessControl {
 
     function canClaim(address addr) public view returns (bool) {
         uint reward = getUserReward(addr);
-
         require(
             WBTCI(WbtcContract).balanceOf(WbtcAddress) >= reward &&
             WBTCI(WbtcContract).allowance(WbtcAddress, address(this)) >= reward,
             ERR_NoWBTC
         );
-
         return true;
+    }
+
+    function _canClaim(address addr) internal view returns (bool) {
+        // compare whole day here so we can't omit division
+        return block.timestamp / 86400 > miners[addr].date / 86400;
     }
 
 
     function getUserReward(address addr) public view returns (uint) {
-        // can claim if today > stakeDate + 1
         Miner memory miner = miners[addr];
-        uint24 yesterday = today() - 1;
+        uint64 today = today();
+        uint64 stakeDay = miner.date / 86400;
 
-        require(yesterday > miner.date, ERR_CantClaimYet);
+        require(today > stakeDay, ERR_CantClaimYet);
         require(miners[addr].stake > 0, ERR_NoStake);
-        require(rewards[yesterday] != 0, ERR_NoRewardSet);
+        require(rewards[today-1] != 0, ERR_NoRewardSet);
 
-        return miner.stake * (rewards[yesterday] - rewards[miner.date]);
+
+        return miner.stake * (
+            (rewards[today-1] - rewards[stakeDay]) +  // whole day
+            (rewards[stakeDay] - rewards[stakeDay-1]) * ((stakeDay+1) * 86400 - miner.date) / 86400  // part of first day
+        );
+
     }
 
 
     function setReward(uint24 date, uint amount) public onlyRole(ORACLE_ROLE) {
         require(date > lastClaimed, ERR_RewardClaimed);
         require(rewards[date-1] != 0, ERR_NoRewardSet);
+        require(0 < amount && amount <= 1e25, ERR_RewardOutBounds);
         // we will have wrong calculations on next day if change previous day value
         require(rewards[date+1] == 0, ERR_NextRewardSet);
-        require(0 < amount && amount <= 1e6, ERR_RewardOutBounds);
 
         rewards[date] = rewards[date-1] + amount;
     }
@@ -164,8 +173,7 @@ contract H24 is ERC20, AccessControl {
         _mint(to, amount);
     }
 
-    // day can be safely store in 24 bit because 1970 + (2**24/365) = 47934 year
-    function today() internal view returns (uint24) {
+    function today() internal view returns (uint64) {
         return uint24(block.timestamp / 86400);
     }
 
