@@ -95,7 +95,7 @@ describe("Token", () => {
       await wbtcContract.mint(owner, 1000);
       await wbtcContract.increaseApproval(contract.address, 1000);
       await contract.mint(user, 10);
-      await contract.connect(userS).stake(10);
+      await contract.connect(userS).stake(10, false);
       await nextDay();
       await contract.connect(userS).claim();
 
@@ -133,7 +133,7 @@ describe("Token", () => {
 
   describe("stake / unstake", async () => {
     it("no tokens", async () => {
-      await expect(contract.connect(userS).stake(10)).to.be.revertedWith(errors.AmountExceedsBalance);
+      await expect(contract.connect(userS).stake(10, false)).to.be.revertedWith(errors.AmountExceedsBalance);
     });
 
     it("stake ok", async () => {
@@ -142,31 +142,31 @@ describe("Token", () => {
       expect(await contract.getStake(user)).to.equal(0);
       await expect(contract.canUnstake(user)).to.be.revertedWith(errors.NoStake);
 
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       expect(await contract.balanceOf(user)).to.equal(5);
       expect(await contract.getStake(user)).to.equal(5);
     });
 
     it("stake twice ok", async () => {
       await contract.mint(user, 10);
-      await contract.connect(userS).stake(5);
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
+      await contract.connect(userS).stake(5, false);
       expect(await contract.balanceOf(user)).to.equal(0);
       expect(await contract.getStake(user)).to.equal(10);
     });
 
     it("can't use staked tokens", async () => {
       await contract.mint(user, 10);
-      await contract.connect(userS).stake(10);
-      await expect(contract.connect(userS).stake(10)).to.be.revertedWith(errors.AmountExceedsBalance);
+      await contract.connect(userS).stake(10, false);
+      await expect(contract.connect(userS).stake(10, false)).to.be.revertedWith(errors.AmountExceedsBalance);
     });
 
     it("unstake ok", async () => {
       await contract.mint(user, 10);
-      await contract.connect(userS).stake(10);
+      await contract.connect(userS).stake(10, false);
 
       await contract.canUnstake(user);
-      await contract.connect(userS).unstake(3);
+      await contract.connect(userS).unstake(3, false);
 
       expect(await contract.balanceOf(user)).to.equal(3);
       expect(await contract.getStake(user)).to.equal(7);
@@ -174,9 +174,9 @@ describe("Token", () => {
 
     it("unstake all ok", async () => {
       await contract.mint(user, 10);
-      await contract.connect(userS).stake(10);
+      await contract.connect(userS).stake(10, false);
 
-      await contract.connect(userS).unstakeAll();
+      await contract.connect(userS).unstakeAll(false);
 
       expect(await contract.balanceOf(user)).to.equal(10);
       expect(await contract.getStake(user)).to.equal(0);
@@ -184,23 +184,23 @@ describe("Token", () => {
 
     it("can't unstake stake == 0", async () => {
       await expect(contract.canUnstake(user)).to.be.revertedWith(errors.NoStake);
-      await expect(contract.connect(userS).unstake(100)).to.be.revertedWith(errors.AmountGreaterStake);
-      await expect(contract.connect(userS).unstakeAll()).to.be.revertedWith(errors.NoStake);
+      await expect(contract.connect(userS).unstake(100, false)).to.be.revertedWith(errors.AmountGreaterStake);
+      await expect(contract.connect(userS).unstakeAll(false)).to.be.revertedWith(errors.NoStake);
     });
 
     it("can't unstake amount > stake", async () => {
       await contract.mint(user, 10);
-      await contract.connect(userS).stake(10);
-      await expect(contract.connect(userS).unstake(100)).to.be.revertedWith(errors.AmountGreaterStake);
+      await contract.connect(userS).stake(10, false);
+      await expect(contract.connect(userS).unstake(100, false)).to.be.revertedWith(errors.AmountGreaterStake);
     });
 
     it("event", async () => {
       await contract.mint(user, 10);
-      await expect(contract.connect(userS).stake(10))
+      await expect(contract.connect(userS).stake(10, false))
           .to.emit(contract, 'Stake').withArgs(user, 10);
-      await expect(contract.connect(userS).unstake(3))
+      await expect(contract.connect(userS).unstake(3, false))
           .to.emit(contract, 'Stake').withArgs(user, -3);
-      await expect(contract.connect(userS).unstakeAll())
+      await expect(contract.connect(userS).unstakeAll(false))
           .to.emit(contract, 'Stake').withArgs(user, -7);
     });
 
@@ -216,7 +216,7 @@ describe("Token", () => {
       const s = [...Array(5)].map((_, j) => (i >> j) & 1);
 
       it("can't claim " + s, async () => {
-        if (s[0]) await contract.connect(userS).stake(5);
+        if (s[0]) await contract.connect(userS).stake(5, false);
         if (s[1]) await contract.setReward(today, r);
         if (s[2]) await nextDay();
         if (s[3]) await wbtcContract.mint(owner, m);
@@ -233,7 +233,7 @@ describe("Token", () => {
     }
 
     it("can claim", async () => {
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       await contract.setReward(today, r);
       await nextDay();
       await wbtcContract.mint(owner, m);
@@ -251,7 +251,7 @@ describe("Token", () => {
       await wbtcContract.increaseApproval(contract.address, m);
       for (let i = 0; i < 2; i++) await contract.setReward(today + i, r);
 
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       await nextDay();
       await contract.connect(userS).claim();
       expect(await wbtcContract.balanceOf(user)).to.be.near(5n * r);
@@ -268,13 +268,13 @@ describe("Token", () => {
       await nextDay(0, 12 * 60); // 12:00
       await contract.setReward(today, r);
 
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       await nextDay();
       expect(await contract.getUserReward(user)).to.be.near(5n * r / 2n);
     });
 
     it("our error if wbtc error", async () => {
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       await contract.setReward(today, 10);
       await contract.setReward(today + 1, 10);
       await nextDay(2);
@@ -294,50 +294,50 @@ describe("Token", () => {
     });
 
     it("stake same day no claim", async () => {
-      await contract.connect(userS).stake(5);
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
+      await contract.connect(userS).stake(5, false);
       expect(await wbtcContract.balanceOf(user)).to.equal(0);
     });
 
     it("unstake same day no claim", async () => {
-      await contract.connect(userS).stake(10);
-      await contract.connect(userS).unstake(5);
-      await contract.connect(userS).unstakeAll();
+      await contract.connect(userS).stake(10, false);
+      await contract.connect(userS).unstake(5, false);
+      await contract.connect(userS).unstakeAll(false);
       expect(await wbtcContract.balanceOf(user)).to.equal(0);
     });
 
     it("claim on stake", async () => {
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       await nextDay();
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       expect(await wbtcContract.balanceOf(user)).to.be.near(5n * r);
     });
 
     it("claim on unstake", async () => {
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       await nextDay();
-      await contract.connect(userS).unstake(5);
+      await contract.connect(userS).unstake(5, false);
       expect(await wbtcContract.balanceOf(user)).to.be.near(5n * r);
     });
 
     it("claim on unstakeAll", async () => {
-      await contract.connect(userS).stake(5);
+      await contract.connect(userS).stake(5, false);
       await nextDay();
-      await contract.connect(userS).unstakeAll();
+      await contract.connect(userS).unstakeAll(false);
       expect(await wbtcContract.balanceOf(user)).to.be.near(5n * r);
     });
 
     it("unstake twice on same day with 1 claim", async () => {
-      await contract.connect(userS).stake(10);
+      await contract.connect(userS).stake(10, false);
       await nextDay();
-      await contract.connect(userS).unstake(5);
+      await contract.connect(userS).unstake(5, false);
       expect(await wbtcContract.balanceOf(user)).to.be.near(10n * r);
-      await contract.connect(userS).unstakeAll();
+      await contract.connect(userS).unstakeAll(false);
       expect(await wbtcContract.balanceOf(user)).to.be.near(10n * r);
     });
 
     it("canUnstake consider canClaim", async () => {
-      await contract.connect(userS).stake(10);
+      await contract.connect(userS).stake(10, false);
       await contract.canUnstake(user);
       await nextDay(2);
       await contract.canClaim(user);
@@ -346,6 +346,25 @@ describe("Token", () => {
       await expect(contract.canClaim(user)).to.be.revertedWith(errors.NoWBTC);
       await expect(contract.canUnstake(user)).to.be.revertedWith(errors.NoWBTC);
     });
+
+    it("force", async () => {
+      await contract.connect(userS).stake(10, false);
+      await nextDay(3);
+
+      await expect(contract.canClaim(user)).to.be.revertedWith(errors.NoRewardSet);
+      await expect(contract.connect(userS).stake(5, false)).to.be.revertedWith(errors.NoRewardSet);
+      await expect(contract.connect(userS).unstake(5, false)).to.be.revertedWith(errors.NoRewardSet);
+      await expect(contract.connect(userS).unstakeAll(false)).to.be.revertedWith(errors.NoRewardSet);
+
+      await contract.connect(userS).stake(5, true)
+      await contract.connect(userS).unstake(5, true)
+      await contract.connect(userS).unstakeAll(true)
+
+      expect(await wbtcContract.balanceOf(user)).to.be.equal(0);
+      expect(await contract.getStake(user)).to.be.equal(0);
+    });
+
+
   });
 
   describe("roles", async () => {

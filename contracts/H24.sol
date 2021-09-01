@@ -58,9 +58,9 @@ contract H24 is ERC20, AccessControl {
     }
 
 
-    function stake(uint192 amount) public {
-        if (miners[msg.sender].stake != 0 && _canClaim(msg.sender))
-            claim();
+    function stake(uint192 amount, bool force) public {
+        if (!force && miners[msg.sender].stake != 0 && _canClaim(msg.sender))
+            _claim();
 
         miners[msg.sender].date = uint64(block.timestamp);
         miners[msg.sender].stake += amount;
@@ -68,10 +68,10 @@ contract H24 is ERC20, AccessControl {
         emit Stake(msg.sender, int(uint(amount)));
     }
 
-    function unstake(uint192 amount) public {
+    function unstake(uint192 amount, bool force) public {
         require(miners[msg.sender].stake >= amount, ERR_AmountGreaterStake);
-        if (_canClaim(msg.sender))
-            claim();
+        if (!force && _canClaim(msg.sender))
+            _claim();
 
         miners[msg.sender].date = uint64(block.timestamp);
         miners[msg.sender].stake -= amount;
@@ -79,10 +79,10 @@ contract H24 is ERC20, AccessControl {
         emit Stake(msg.sender, -int(uint(amount)));
     }
 
-    function unstakeAll() public {
+    function unstakeAll(bool force) public {
         require(miners[msg.sender].stake > 0, ERR_NoStake);
-        if (_canClaim(msg.sender))
-            claim();
+        if (!force && _canClaim(msg.sender))
+            _claim();
 
         _transfer(address(this), msg.sender, miners[msg.sender].stake);
         emit Stake(msg.sender, -int(uint(miners[msg.sender].stake)));
