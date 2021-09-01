@@ -3,6 +3,8 @@ pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "hardhat/console.sol";
+
 
 interface WBTCI {
     function allowance(address _owner, address _spender) external view returns (uint256);
@@ -149,8 +151,8 @@ contract H24 is ERC20, AccessControl {
     }
 
 
-    function setReward(uint24 date, uint amount) public onlyRole(ORACLE_ROLE) {
-        require(date > lastClaimed, ERR_RewardClaimed);
+    function setReward(uint64 date, uint amount) public onlyRole(ORACLE_ROLE) {
+        require(date >= lastClaimed, ERR_RewardClaimed);
         require(rewards[date-1] != 0, ERR_NoRewardSet);
         require(0 < amount && amount <= 1e25, ERR_RewardOutBounds);
         // we will have wrong calculations on next day if change previous day value
@@ -159,7 +161,17 @@ contract H24 is ERC20, AccessControl {
         rewards[date] = rewards[date-1] + amount;
     }
 
-    function getReward(uint24 date) public view returns (uint){
+    function changeReward(uint64 date, uint amount) public onlyRole(ORACLE_ROLE) {
+        require(date >= lastClaimed, ERR_RewardClaimed);
+        require(rewards[date-1] != 0, ERR_NoRewardSet);
+        require(0 < amount && amount <= 1e25, ERR_RewardOutBounds);
+
+        int delta = int(amount - getReward(date));
+        for (; rewards[date] != 0; date++)
+            rewards[date] = uint(int(rewards[date]) + delta);
+    }
+
+    function getReward(uint64 date) public view returns (uint){
         return rewards[date] - rewards[date-1];
     }
 
@@ -176,6 +188,5 @@ contract H24 is ERC20, AccessControl {
     function today() internal view returns (uint64) {
         return uint24(block.timestamp / 86400);
     }
-
 
 }

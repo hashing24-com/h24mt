@@ -76,16 +76,26 @@ describe("Token", () => {
       expect(await contract.getReward(today - 1)).to.be.equal(10);
     });
 
-    it("change reward", async () => {
+    it("setReward() before next reward set", async () => {
       await contract.setReward(today, 10);
       await contract.setReward(today, 20);
       expect(await contract.getReward(today)).to.be.equal(20);
     });
 
-    it("change reward after next reward set", async () => {
+    it("setReward() after next reward set", async () => {
       await contract.setReward(today, 10);
-      await contract.setReward(today + 1, 10);
+      await contract.setReward(today + 1, 20);
       await expect(contract.setReward(today, 10)).to.be.revertedWith(errors.NextRewardSet);
+    });
+
+    it("changeReward() after next reward set", async () => {
+      await contract.setReward(today, 10);
+      await contract.setReward(today + 1, 20);
+
+      await contract.changeReward(today, 15)
+
+      expect(await contract.getReward(today)).to.be.equal(15);
+      expect(await contract.getReward(today + 1)).to.be.equal(20);
     });
 
     it("already claimed", async () => {
@@ -99,7 +109,8 @@ describe("Token", () => {
       await nextDay();
       await contract.connect(userS).claim();
 
-      await expect(contract.setReward(today, 10)).to.be.revertedWith(errors.RewardClaimed);
+      await expect(contract.setReward(today-1, 10)).to.be.revertedWith(errors.RewardClaimed);
+      await contract.setReward(today, 10)
     });
   });
 
