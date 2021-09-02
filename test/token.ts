@@ -96,6 +96,11 @@ describe("Token", () => {
 
       expect(await contract.getReward(today)).to.be.equal(15);
       expect(await contract.getReward(today + 1)).to.be.equal(20);
+
+      await contract.changeReward(today, 5)
+
+      expect(await contract.getReward(today)).to.be.equal(5);
+      expect(await contract.getReward(today + 1)).to.be.equal(20);
     });
 
     it("already claimed", async () => {

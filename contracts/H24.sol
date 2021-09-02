@@ -166,7 +166,7 @@ contract H24 is ERC20, AccessControl {
         require(rewards[date-1] != 0, ERR_NoRewardSet);
         require(0 < amount && amount <= 1e25, ERR_RewardOutBounds);
 
-        int delta = int(amount - getReward(date));
+        int delta = int(amount) - int(getReward(date));
         for (; rewards[date] != 0; date++)
             rewards[date] = uint(int(rewards[date]) + delta);
     }
