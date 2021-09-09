@@ -152,26 +152,36 @@ contract H24 is ERC20, AccessControl {
 
 
     function setReward(uint64 date, uint amount) public onlyRole(ORACLE_ROLE) {
+        uint yesterday = rewards[date-1];
+
         require(date >= lastClaimed, ERR_RewardClaimed);
-        require(rewards[date-1] != 0, ERR_NoRewardSet);
+        require(yesterday != 0, ERR_NoRewardSet);
         require(0 < amount && amount <= 1e25, ERR_RewardOutBounds);
         // we will have wrong calculations on next day if change previous day value
         require(rewards[date+1] == 0, ERR_NextRewardSet);
 
-        rewards[date] = rewards[date-1] + amount;
+        rewards[date] = yesterday + amount;
     }
 
     function changeReward(uint64 date, uint amount) public onlyRole(ORACLE_ROLE) {
+        uint yesterday = rewards[date-1];
+
         require(date >= lastClaimed, ERR_RewardClaimed);
-        require(rewards[date-1] != 0, ERR_NoRewardSet);
+        require(yesterday != 0, ERR_NoRewardSet);
         require(0 < amount && amount <= 1e25, ERR_RewardOutBounds);
 
-        int delta = int(amount) - int(getReward(date));
+        if (rewards[date] == 0) {
+            rewards[date] = yesterday + amount;
+            return;
+        }
+
+        int delta = int(amount) - int(rewards[date] - yesterday);
         for (; rewards[date] != 0; date++)
             rewards[date] = uint(int(rewards[date]) + delta);
     }
 
     function getReward(uint64 date) public view returns (uint){
+        if (rewards[date] == 0) return 0;
         return rewards[date] - rewards[date-1];
     }
 
