@@ -108,7 +108,8 @@ contract H24 is ERC20, AccessControl {
     }
 
     function _claim() internal {
-        uint reward = getUserReward(msg.sender);
+        // reward 18*2 decimals, wbtc 8 decimals => throw out 28 decimals
+        uint reward = getUserReward(msg.sender) / 1e28;
         lastClaimed = today();
 
         try WBTCI(WbtcContract).transferFrom(WbtcAddress, msg.sender, reward) {}
@@ -118,7 +119,7 @@ contract H24 is ERC20, AccessControl {
     }
 
     function canClaim(address addr) public view returns (bool) {
-        uint reward = getUserReward(addr);
+        uint reward = getUserReward(addr) / 1e28;
         require(
             WBTCI(WbtcContract).balanceOf(WbtcAddress) >= reward &&
             WBTCI(WbtcContract).allowance(WbtcAddress, address(this)) >= reward,
